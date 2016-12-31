@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game</title>
+</head>
+<body>
+<canvas id="game" width="720" height="480">
+    Ваш браузер не поддерживает Canvas
+</canvas>
+<script>
+    var CANVAS_WIDTH = 720, CANVAS_HEIGHT = 480;
+    var canvas = document.getElementById("game"),
+            context = canvas.getContext("2d");
+    var currentKey = '';
+    var FPS = 30;
+    var snow = new Image();
+    snow.src = "images/snow.jpg";
+    var santa = new Image();
+    santa.src = 'images/santa.gif';
+    var santaGirlPic = new Image();
+    santaGirlPic.src = 'images/santa-girl.png';
+    var tree = new Image();
+    tree.src = 'images/tree.png';
+    var giftPic = new Image();
+    giftPic.src = 'images/gift.png';
+    var giftsCount = 0;
+
+    var field = {
+        draw: function () {
+            var pattern = context.createPattern(snow, "repeat");
+            context.fillStyle = pattern;
+            context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            context.font = "30px Verdana";
+            context.strokeStyle = "blue";
+            context.strokeText(giftsCount, 640, 60);
+        }
+    };
+    var santaGirl = {
+        width: 50,
+        height: 82,
+        x: 0,
+        y: 0,
+        draw: function () {
+            this.y = CANVAS_HEIGHT - this.height
+            context.drawImage(santaGirlPic, this.x, this.y, this.width, this.height)
+        }
+    }
+    var player = {
+        color: "red",
+        x: 220,
+        y: 270,
+        width: 30,
+        height: 30,
+        draw: function() {
+            context.drawImage(santa, this.x, this.y, this.width, this.height)
+        }
+    };
+    var christmasTree = {
+        color: 'green',
+        x: 500,
+        y: 10,
+        width: 80,
+        height: 100,
+        draw: function () {
+            context.drawImage(tree, this.x, this.y, this.width, this.height)
+        }
+    };
+    function Gift() {
+        this.width = 15;
+        this.height = 15;
+        this.x = random(0, christmasTree.x);
+        this.y = random(0, CANVAS_HEIGHT - this.height);
+        this.draw = function () {
+            context.drawImage(giftPic, this.x, this.y, this.width, this.height)
+        }
+    };
+    var giftsArray = [];
+    giftsArray.push(new Gift());
+    var giftInHands = false;
+    var step = 0;
+    var currentGift = {};
+    function draw() {
+        currentGift = giftsArray[giftsArray.length - 1];
+        context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        field.draw();
+        if (giftsArray.length <= 10) {
+            if (player.x >= currentGift.x && player.x <= currentGift.x + currentGift.width && player.y >= currentGift.y && player.y <= currentGift.y + currentGift.height) {
+                giftInHands = true;
+            } else if (giftInHands !== true){
+                currentGift.draw()
+            } else if (player.x >= christmasTree.x && player.x <= christmasTree.x + christmasTree.width && player.y >= christmasTree.y && player.y <= christmasTree.y + christmasTree.height) {
+                giftInHands = false;
+                currentGift.x = 640;
+                currentGift.y = 80 + step;
+                step += 20;
+                giftsArray.push(new Gift());
+                giftsCount++;
+            }
+        } else {
+            if (player.x >= santaGirl.x && player.x <= santaGirl.x + santaGirl.width && player.y >= santaGirl.y && player.y <= santaGirl.y + santaGirl.height) {
+                giftInHands = true;
+            } else if (giftInHands !== true){
+                santaGirl.draw();
+            } else if (player.x >= christmasTree.x && player.x <= christmasTree.x + christmasTree.width && player.y >= christmasTree.y && player.y <= christmasTree.y + christmasTree.height) {
+                giftInHands = false;
+            }
+
+        }
+        drawGiftsStock();
+        christmasTree.draw();
+        player.draw();
+    }
+    function drawGiftsStock() {
+        if (giftsArray.length > 1) {
+            for (var i = 0; i < giftsArray.length - 1; i++ ) {
+                giftsArray[i].draw();
+            }
+        }
+
+    }
+    function update() {
+        if (currentKey === 'ArrowLeft') {
+            (player.x < 0) ? player.x = 0 : player.x -= 5
+        } else if (currentKey === 'ArrowRight') {
+            (player.x > CANVAS_WIDTH) ? player.x = CANVAS_WIDTH - player.width : player.x += 5
+        } else if (currentKey === 'ArrowUp') {
+            (player.y < 0) ? player.y = 0 : player.y -= 5
+        } else if (currentKey === 'ArrowDown') {
+            (player.y > CANVAS_HEIGHT) ? player.y = CANVAS_HEIGHT - player.height : player.y += 5
+        }
+
+    }
+
+    setInterval(function() {
+        update();
+        draw();
+    }, 1000/FPS);
+
+    function random(min, max) {
+        var rand = min - 0.5 + Math.random() * (max - min + 1);
+        rand = Math.round(rand);
+        return rand;
+    }
+
+
+    document.addEventListener('keydown', function (e) {
+        currentKey = e.code;
+    });
+
+</script>
+</body>
+</html>
